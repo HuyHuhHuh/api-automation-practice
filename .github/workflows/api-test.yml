@@ -1,9 +1,8 @@
-# Tên của quy trình CI/CD
 name: Laravel CI/CD with Newman Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, master ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -63,19 +62,25 @@ jobs:
     - run: npm install -g newman newman-reporter-htmlextra
 
     # Bước 7: Chạy kiểm thử Newman
-    # TODO (Bạn thêm code ở dưới đây)
     - name: Run Newman Tests 🚀
       run: |
-        
+        echo "🧪 Running Newman tests..."
+        newman run tests/api/payment_check.postman_collection.json \
+          -e tests/api/environment.json \
+          --reporters cli,htmlextra \
+          --reporter-htmlextra-export reports/newman-report.html
+
     # Bước 8: Upload báo cáo (luôn chạy)
     - name: Upload Test Report 📊
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        # name: newman-report (đổi tên lại cho phù hợp)
-        # path: test-report.html (đổi tên lại cho phù hợp)
+        name: newman-test-report
+        path: reports/newman-report.html
 
     # Bước 9: Dọn dẹp (luôn chạy)
     - name: Cleanup 🧹
       if: always()
       run: docker compose down -v
+
+      

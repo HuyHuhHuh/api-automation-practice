@@ -24,6 +24,11 @@ fi
 
 # Run tests
 # TODO (Bạn thêm code ở dưới đây)
+echo "🧪 Running Newman tests..."
+newman run tests/api/payment_check.postman_collection.json \
+  -e tests/api/environment.json \
+  --reporters cli,htmlextra \
+  --reporter-htmlextra-export reports/newman-report.html
 
 # Cleanup (optional)
 docker compose down
