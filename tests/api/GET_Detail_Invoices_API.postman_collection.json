@@ -1,0 +1,245 @@
+{
+  "info": {
+    "_postman_id": "fca7d26a-11e4-4b84-8234-c47cbe249988",
+    "name": "Details Invoices API Tests",
+    "description": "Collection kiểm thử API lấy hóa đơn cụ thể (GET /invoices/{invoiceId}).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login successful\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const res = pm.response.json();",
+              "pm.environment.set(\"authToken\", res.access_token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"huy@gmail.com\",\n  \"password\": \"123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Invoice - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+              "const res = pm.response.json();",
+              "pm.test('Response has invoice_number', () => pm.expect(res).to.have.property('invoice_number'));",
+              "pm.test('Invoice items is array', () => pm.expect(res.invoice_items).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices",
+            "1"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Invoice - Not Found (402)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 402 when invoice not found', () => pm.expect(pm.response.code).to.equal(402));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices/999999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices",
+            "999999"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Missing invoiceId - 405",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 405 when missing invoiceId', () => pm.expect(pm.response.code).to.equal(405));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Invalid invoiceId type - 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 422 when invoiceId is not integer', () => pm.expect(pm.response.code).to.equal(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices/abc",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices",
+            "abc"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Unauthorized - 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 401 when no Authorization header', () => pm.expect(pm.response.code).to.equal(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices",
+            "1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Wrong method - 405",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 405 when using POST instead of GET', () => pm.expect(pm.response.code).to.equal(405));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{base_url}}/invoices/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices",
+            "1"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8091"
+    }
+  ]
+}

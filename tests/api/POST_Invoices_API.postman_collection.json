@@ -1,0 +1,278 @@
+{
+  "info": {
+    "_postman_id": "6f8d9d73-9f33-4b90-82c2-3fefb0a223cd",
+    "name": "Store Invoices API Check",
+    "description": "Collection kiểm thử API tạo hóa đơn mới (POST /invoices).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login successful\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const res = pm.response.json();",
+              "pm.environment.set(\"authToken\", res.access_token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"huy@gmail.com\",\n  \"password\": \"123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/users/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Invoice - Valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+              "const res = pm.response.json();",
+              "pm.test('Response has invoice_number', () => pm.expect(res).to.have.property('invoice_number'));",
+              "pm.test('Invoice items is array', () => pm.expect(res.invoice_items).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": 1,\n  \"billing_address\": \"123 Street\",\n  \"billing_city\": \"HCM\",\n  \"billing_country\": \"VN\",\n  \"billing_state\": \"SG\",\n  \"billing_postcode\": \"70000\",\n  \"total\": 120.5,\n  \"payment_method\": \"Cash on Delivery\",\n  \"payment_account_name\": \"John Doe\",\n  \"payment_account_number\": \"1234567890\",\n  \"invoice_items\": [\n    {\n      \"product_id\": 9,\n      \"quantity\": 1,\n      \"unit_price\": 120.5\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Missing user_id - 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 422 when missing user_id', () => pm.expect(pm.response.code).to.equal(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"billing_address\": \"123 Street\",\n  \"billing_city\": \"HCM\",\n  \"billing_country\": \"VN\",\n  \"billing_state\": \"SG\",\n  \"billing_postcode\": \"70000\",\n  \"total\": 120.5,\n  \"payment_method\": \"Cash on Delivery\",\n  \"payment_account_name\": \"John Doe\",\n  \"payment_account_number\": \"1234567890\",\n  \"invoice_items\": [\n    {\"product_id\": 9,\"quantity\": 1,\"unit_price\": 120.5}\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Invalid user_id - 402",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 402 when user not found', () => pm.expect(pm.response.code).to.equal(402));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": 999999,\n  \"billing_address\": \"123 Street\",\n  \"billing_city\": \"HCM\",\n  \"billing_country\": \"VN\",\n  \"billing_state\": \"SG\",\n  \"billing_postcode\": \"70000\",\n  \"total\": 120.5,\n  \"payment_method\": \"Cash on Delivery\",\n  \"payment_account_name\": \"John Doe\",\n  \"payment_account_number\": \"1234567890\",\n  \"invoice_items\": [\n    {\"product_id\": 9,\"quantity\": 1,\"unit_price\": 120.5}\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Empty invoice_items - 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 422 when invoice_items empty', () => pm.expect(pm.response.code).to.equal(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": 1,\n  \"billing_address\": \"123 Street\",\n  \"billing_city\": \"HCM\",\n  \"billing_country\": \"VN\",\n  \"billing_state\": \"SG\",\n  \"billing_postcode\": \"70000\",\n  \"total\": 120.5,\n  \"payment_method\": \"Cash on Delivery\",\n  \"payment_account_name\": \"John Doe\",\n  \"payment_account_number\": \"1234567890\",\n  \"invoice_items\": []\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Unauthorized - 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 401 when no Authorization header', () => pm.expect(pm.response.code).to.equal(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Wrong method - 405",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Expect 405 when using GET instead of POST', () => pm.expect(pm.response.code).to.equal(405));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/invoices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8091"
+    }
+  ]
+}
