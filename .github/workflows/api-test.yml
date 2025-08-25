@@ -62,13 +62,45 @@ jobs:
     - run: npm install -g newman newman-reporter-htmlextra
 
     # Bước 7: Chạy kiểm thử Newman
+        # Bước 7: Chạy kiểm thử Newman cho nhiều collection
     - name: Run Newman Tests 🚀
       run: |
         echo "🧪 Running Newman tests..."
-        newman run tests/api/payment_check.postman_collection.json \
-          -e tests/api/environment.json \
-          --reporters cli,htmlextra \
-          --reporter-htmlextra-export reports/newman-report.html
+        mkdir -p reports
+
+        collections=("GET_Detail_Invoices_API.postman_collection.json" "POST_Invoices_API.postman_collection.json" "POST_Payment_Check_API.postman_collection.json")
+        overall_status=0
+
+        for collection in "${collections[@]}"; do
+          name=$(basename "$collection" .postman_collection.json)
+          report="reports/${name}_report.html"
+          log="reports/${name}.log"
+
+          echo -e "\n🧪 Testing Collection: $name"
+
+          if ! newman run "tests/api/$collection" \
+            -e tests/api/environment.json \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "$report" \
+            --reporter-htmlextra-title "$name Test Report" 2>&1 | tee "$log"; then
+              echo "❌ $name tests failed"
+              overall_status=1
+          else
+              echo "✅ $name tests passed"
+          fi
+
+          echo "📊 Report: file://$(pwd)/$report"
+          echo "📋 Log: $(pwd)/$log"
+        done
+
+        if [ $overall_status -eq 0 ]; then
+          echo -e "\n🎉 All test collections passed successfully!"
+        else
+          echo -e "\n🔴 Some test collections failed. Check individual reports."
+          exit 1
+        fi
+      shell: bash
+
 
     # Bước 8: Upload báo cáo (luôn chạy)
     - name: Upload Test Report 📊
